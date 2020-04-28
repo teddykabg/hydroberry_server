@@ -90,7 +90,7 @@ type Query{
 
     getLogs:[Logs!],
 
-    getMeasure_by_id(system_id : ID!) : Measurement,
+    getMeasure_by_id(system_id : ID!, crop_id:ID!) : Measurement,
 
     getMeasure:[Measurement!]! ,#Has to get the measure from mqtt every minute ("subscription to topic")
 

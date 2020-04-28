@@ -73,7 +73,7 @@ export const resolvers = {
 
     getLogs: () => Logs.find(),
 
-    getMeasure_by_id: (measure_id) => Measurement.findById(measure_id),
+    getMeasure_by_id: (_,{system_id,crop_id},context) => Measurement.findOne({system_id:system_id,crop_id:crop_id},{},{ sort: { 'created_at' : -1 } }),
 
     getDataLastHour: (system_id, id_crop) => {
       const current = new Date();
