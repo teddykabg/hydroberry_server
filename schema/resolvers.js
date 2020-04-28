@@ -23,10 +23,12 @@ export const resolvers = {
     name: 'Date',
     description: 'Date custom scalar type',
     parseValue(value) {
+      console.log("Here is the date! : " + value)
       return new Date(value); // value from the client
     },
     serialize(value) {
-      return value.getTime(); // value sent to the client
+      console.log(new Date(value).toISOString())
+      return new Date(value * 1000).toISOString();
     },
     parseLiteral(ast) {
       if (ast.kind === Kind.INT) {
@@ -42,38 +44,60 @@ export const resolvers = {
     getUsers: () => User.find(),
 
     getSystems: () => System.find(),//5e7b2df8ba660d22b82fbf34
-    getUserSystems:async (_,args,context) => {
+    getUserSystems: async (_, args, context) => {
       var user_id = authRequest(context);
       var systems = [];
       if (user_id != null) {
         var user = await User.findById(user_id);
-        if(user){
-            console.log("The problem is after");
-            for(var i=0;i<user.systems.length;i++){
-              console.log(user.systems[i]);
-              var system = await System.findById(user.systems[i]);
-              if(system){
-                systems.push(system);
-              }else{
-                console.log("System didn't found");
-              }
+        if (user) {
+          console.log("The problem is after");
+          for (var i = 0; i < user.systems.length; i++) {
+            console.log(user.systems[i]);
+            var system = await System.findById(user.systems[i]);
+            if (system) {
+              systems.push(system);
+            } else {
+              console.log("System didn't found");
             }
-            return systems;
-        }else{
+          }
+          return systems;
+        } else {
           print("User doesn't exist");
           return [];
         }
-      }else{
+      } else {
         console.log("Not authorized");
         return [];
       }
     },
 
-    getCrops: () => Crop.find(), //5e7b34e22c5d904a200b3d7f
+    getCrops: async (_, { system_id }, context) => {
+      var user_id = authRequest(context);
+      if (user_id != null) {
+        var system = await System.findById(system_id);
+        var resultList = [];
+        if (system) {
+          
+          var crops = system.crops;
+          console.log(crops);
+          for(var i=0;i<system.crops.length;i++){
+            var crops = await Crop.findById(crops[i]);
+            resultList[i] = crops;
+          }
+          return resultList;
+        } else {
+          console.log("Array crop not sent");
+          return [];
+        }
+      } else {
+        console.log("Not authorized");
+        return [];
+      }
 
+    },
     getLogs: () => Logs.find(),
 
-    getMeasure_by_id: (_,{system_id,crop_id},context) => Measurement.findOne({system_id:system_id,crop_id:crop_id},{},{ sort: { 'created_at' : -1 } }),
+    getMeasure_by_id: (_, { system_id, crop_id }, context) => Measurement.findOne({ system_id: system_id, crop_id: crop_id }, {}, { sort: { 'created_at': -1 } }),
 
     getDataLastHour: (system_id, id_crop) => {
       const current = new Date();
@@ -178,20 +202,20 @@ export const resolvers = {
               { $push: { crops: crop._id } }
             ,
             ).exec();
-            if(addSystem){
+            if (addSystem) {
               console.log("Crop added to system");
               return true
-            }else{
+            } else {
               console.log("Crop not added to system");
               return false;
             }
           }
-          else{
+          else {
             console.log("Crop not added")
             return false;
           }
         }
-      }else{
+      } else {
         console.log("Not authorized");
         return false;
       }
@@ -421,9 +445,9 @@ export const resolvers = {
         var crypto = require("crypto");
         var sys_crop_rand_id = crypto.randomBytes(20).toString('hex');
         const measure = new Measurement({
-          system_id: sys_crop_rand_id,
-          crop_id: sys_crop_rand_id,
-          time: newTime,
+          system_id: "5ea6e4eb30272ea33efc1ce2",
+          crop_id: "5ea6e4eb30272ea33efc1ce1",
+          time: new Date(payload.data.time * 1000),
           hour_slot: newTime.getHours(),
           month_slot: newTime.getMonth(),
           day_slot: newTime.getDay(),
@@ -436,18 +460,23 @@ export const resolvers = {
           ph: payload.data.pH,
           ec: payload.data.ec
         });
-        await measure.save();
-        console.log(measure);
-        return payload.data;
-        /* return {
-            temp: payload.data.temp,
-            hum: payload.data.hum,
-            lux: payload.data.lux,
-            temp_res: payload.data.temp_res,
-            pH: payload.data.pH,
-            ec: payload.data.ec,
-            time: new Date(payload.data.time * 1000).toISOString()
-        }; */
+        var result = await measure.save();
+        if (!result) {
+          console.log("Misure non inserite!")
+        } else {
+          console.log("Misure inserite in system: ");
+          console.log(measure);
+        }
+        return {
+          time: new Date(payload.data.time * 1000),
+          lux: payload.data.lux,
+          temp: payload.data.temp,
+          hum: payload.data.hum,
+          temp_res: payload.data.temp_res,
+          pH: payload.data.pH,
+          ec: payload.data.ec
+        };
+
       },
       subscribe: (_, args) => { return pubsub.asyncIterator([args.topic]) }
 
