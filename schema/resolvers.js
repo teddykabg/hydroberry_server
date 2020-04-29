@@ -71,11 +71,48 @@ export const resolvers = {
       }
     },
 
+    getAuthPage: async (_, { system_id }, context) => {
+      var user_id = authRequest(context);
+      if (user_id != null) {
+        var system = await System.findById(system_id);
+        if (system) {
+          var user_names = [];
+          var crops_names = [];
+          var user_ids_raw = system.authorized_people;
+          var crops_ids_raw = system.crops;
+          for(var i=0; i< user_ids_raw.length;i++){
+            var user = await User.findById(user_ids_raw[i]);
+            if(user){
+                user_names.push(user.fullname);
+            }else{
+              throw new Error("User doesn't exist");
+            }
+          }
+          for(var i=0; i< crops_ids_raw.length;i++){
+            var crop = await Crop.findById(crops_ids_raw[i]);
+            if(crop){
+                crops_names.push(crop.name);
+            }else{
+              throw new Error("Crop doesn't exist");
+            }
+          }
+          return{
+            authPeople:user_names,
+            cropNames:crops_names
+          }
+
+        }
+      } else {
+
+        throw new Error("Not authorized");
+      }
+    },
     getUserProfile: async (_, args, context) => {
       var user_id = authRequest(context);
       if (user_id != null) {
         var user = await User.findById(user_id);
-        var systemNames = []
+        var systemNames = [];
+        var systemIds = [];
         if (user) {
           var systemsId = user.systems
           for (var i = 0; i < systemsId.length; i++) {
@@ -85,7 +122,9 @@ export const resolvers = {
             console.log(systemsId);
             if (system) {
               systemNames.push(system.system_name);
+              systemIds.push(system._id);
               console.log(system.system_name);
+              console.log(system._id);
             } else {
               throw new Error("System doesn't exist");
             }
@@ -94,7 +133,8 @@ export const resolvers = {
           return {
             fullname: user.fullname,
             email: user.email,
-            systemNames: systemNames
+            systemNames: systemNames,
+            systemIds: systemIds
           }
         } else {
           throw new Error("User doesn't exist");

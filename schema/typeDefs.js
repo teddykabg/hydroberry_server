@@ -86,7 +86,13 @@ type Homepage{
 type Profile{
     fullname:String!,
     email:String!,
-    systemNames:[String!]
+    systemNames:[String!],
+    systemIds: [String!]
+},
+
+type AuthPage{
+    authPeople:[String!],
+    cropNames:[String!]
 },
 
 type Query{
@@ -97,6 +103,8 @@ type Query{
     getUserProfile:Profile!,
 
     getUserSystems:[System!],
+
+    getAuthPage(system_id:ID!):AuthPage!,
 
     getHomePageSystem(system_id: ID!):Homepage!,
 
