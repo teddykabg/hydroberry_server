@@ -76,13 +76,29 @@ type loginResponse{
 type codeResponse{
     result:Boolean!,
     system_id:String!
-}
+},
+
+type Homepage{
+    crops:[Crop!],
+    measures_firstCrop:Measurement!
+},
+
+type Profile{
+    fullname:String!,
+    email:String!,
+    systemNames:[String!]
+},
+
 type Query{
     hello: String!,
 
     getSystems:[System!],
 
+    getUserProfile:Profile!,
+
     getUserSystems:[System!],
+
+    getHomePageSystem(system_id: ID!):Homepage!,
 
     getUsers:[User!],
 

@@ -71,16 +71,49 @@ export const resolvers = {
       }
     },
 
+    getUserProfile: async (_, args, context) => {
+      var user_id = authRequest(context);
+      if (user_id != null) {
+        var user = await User.findById(user_id);
+        var systemNames = []
+        if (user) {
+          var systemsId = user.systems
+          for (var i = 0; i < systemsId.length; i++) {
+            var system = await System.findById(systemsId[i]);
+            console.log(system.system_name);
+            console.log(system._id);
+            console.log(systemsId);
+            if (system) {
+              systemNames.push(system.system_name);
+              console.log(system.system_name);
+            } else {
+              throw new Error("System doesn't exist");
+            }
+          }
+          console.log(systemNames);
+          return {
+            fullname: user.fullname,
+            email: user.email,
+            systemNames: systemNames
+          }
+        } else {
+          throw new Error("User doesn't exist");
+        }
+      } else {
+        throw new Error("Not authorized");
+      }
+    },
+
     getCrops: async (_, { system_id }, context) => {
       var user_id = authRequest(context);
       if (user_id != null) {
         var system = await System.findById(system_id);
         var resultList = [];
         if (system) {
-          
+
           var crops = system.crops;
           console.log(crops);
-          for(var i=0;i<system.crops.length;i++){
+          for (var i = 0; i < system.crops.length; i++) {
             var crops = await Crop.findById(crops[i]);
             resultList[i] = crops;
           }
@@ -98,6 +131,41 @@ export const resolvers = {
     getLogs: () => Logs.find(),
 
     getMeasure_by_id: (_, { system_id, crop_id }, context) => Measurement.findOne({ system_id: system_id, crop_id: crop_id }, {}, { sort: { 'created_at': -1 } }),
+
+    getHomePageSystem: async (_, { system_id }, context) => {
+      var user_id = authRequest(context);
+      if (user_id != null) {
+        var crops = [];
+        var measurement = {};
+        const system = await System.findById(system_id)
+        if (!system) {
+          console.log("No system with that ID: " + system_id);
+        } else {
+          for (var i = 0; i < system.crops.length; i++) {
+            const crop = await Crop.findById(system.crops[i]);
+            if (crop) {
+              crops.push(crop);
+            }
+          }
+          if (crops.length > 0) {
+            measurement = await Measurement.findOne({ system_id: system._id, crop_id: crops[0]._id }, {}, { sort: { 'created_at': -1 } })
+          } else {
+            console.log("System has no crops!");
+          }
+          console.log(crops);
+          console.log(measurement);
+          return {
+            crops: crops,
+            measures_firstCrop: measurement
+          }
+        }
+      } else {
+        console.log("Not authorized");
+
+        throw new Error("Could not do it");
+      }
+
+    },
 
     getDataLastHour: (system_id, id_crop) => {
       const current = new Date();
@@ -503,8 +571,9 @@ function authRequest(context) {
 
   try {
     var decoded = jwt.verify(token, "secretToken");
-    return decoded.userId; //Todo check if token is expired
+    return decoded.userId;
   } catch (err) {
+    console.log(err);
     return null;
   };
 }
