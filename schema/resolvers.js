@@ -200,25 +200,42 @@ export const resolvers = {
       }
 
     },
+    getDataLastHour:async (_,{system_id,id_crop,parameter},context) =>{
+      var user_id = authRequest(context);
+      var current_date = new Date();
+      if (user_id != null) {
+        var data
+      }else {
+        throw new Error("Not authorized");
+      }
+    },
+    getDataLastHour: async(_,{system_id, id_crop,parameter},context) => {
+      var user_id = authRequest(context);
+      if (user_id != null) {
+        const current = new Date();
+        var data = await Measurement.findById(system_id).find({
+          $and: [
+            { crop_id: id_crop },
+            { day_slot: current.getDay() },
+            { month_slot: current.getMonth() },
+            { year_slot: current.getFullYear() },
+            { hour_slot: (current.getHours() - 1) },
+          ]
+        })
+        console.log(data);
+        return data;
 
-    getDataLastHour: (system_id, id_crop) => {
-      const current = new Date();
+      }else {
+        throw new Error("Not authorized");
+      }
 
-      return Measurement.findById(system_id).find({
-        $and: [
-          { crop_id: id_crop },
-          { day_slot: current.getDay() },
-          { month_slot: current.getMonth() },
-          { year_slot: current.getFullYear() },
-          { hour_slot: (current.getHours() - 1) },
-        ]
-      })
+      
     },
 
-    getDataLastWeek: (system_id, id_crop, parameter) => {
+    getDataLastWeek: async (system_id, id_crop, parameter) => {
       const current = new Date();
 
-      return Measurement.findById(system_id).find({
+      var data = await Measurement.findById(system_id).find({
         $and: [
           { crop_id: id_crop },
           { week_slot: ISO8601_week_no(current) - 1 },
@@ -227,10 +244,10 @@ export const resolvers = {
       })
     },
 
-    getDataLastYear: (system_id, id_crop, parameter) => {
+    getDataLastYear:async (_,{system_id, id_crop, parameter},context) => {
       const current = new Date();
 
-      return Measurement.findById(system_id).find({
+      var data = await Measurement.findById(system_id).find({
         $and: [
           { crop_id: id_crop },
           { year_slot: current.getFullYear() - 1 },
