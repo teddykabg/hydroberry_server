@@ -80,30 +80,29 @@ export const resolvers = {
           var crops_names = [];
           var user_ids_raw = system.authorized_people;
           var crops_ids_raw = system.crops;
-          for(var i=0; i< user_ids_raw.length;i++){
+          for (var i = 0; i < user_ids_raw.length; i++) {
             var user = await User.findById(user_ids_raw[i]);
-            if(user){
-                user_names.push(user.fullname);
-            }else{
+            if (user) {
+              user_names.push(user.fullname);
+            } else {
               throw new Error("User doesn't exist");
             }
           }
-          for(var i=0; i< crops_ids_raw.length;i++){
+          for (var i = 0; i < crops_ids_raw.length; i++) {
             var crop = await Crop.findById(crops_ids_raw[i]);
-            if(crop){
-                crops_names.push(crop.name);
-            }else{
+            if (crop) {
+              crops_names.push(crop.name);
+            } else {
               throw new Error("Crop doesn't exist");
             }
           }
-          return{
-            authPeople:user_names,
-            cropNames:crops_names
+          return {
+            authPeople: user_names,
+            cropNames: crops_names
           }
 
         }
       } else {
-
         throw new Error("Not authorized");
       }
     },
@@ -256,7 +255,7 @@ export const resolvers = {
         throw new Error("Could not find user");
       }
 
-      const verify = await compare(password, user.password); // import { hash, compare } from "bcryptjs";
+      const verify = await compare(password, user.password);
       if (!verify) {
         console.log("Incorrect Password: " + password);
         throw new Error("Wrong Password");
@@ -356,23 +355,15 @@ export const resolvers = {
                 result: false,
                 system_id: system._id
               };
-              //  throw new Error("Error- Cannot update the setting")
             }
             else {
-              return {
-                result: false,
-                system_id: ""
-              }
+              throw new Error("Could not add user");
             }
           }
         }
       }
       else {
-        console.log("Non autorizzato");
-        return {
-          result: false,
-          system_id: ""
-        };
+        throw new Error("User not authorized");
       }
 
     },
@@ -411,13 +402,6 @@ export const resolvers = {
           console.log("Non è stato possibile inserire " + result);
           throw new Error("Error - Cannot update the setting");
         }
-        /* 
-              "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1ZWEyYWIwOGM1MTEwNTA3ZGM0MzMxYzYiLCJpYXQiOjE1ODc4MjQ2MDUsImV4cCI6MTU4NzkxMTAwNX0.6Px4gKQkFIVwYdzZxedbTLJHGwwVwASYOIX72EIUnSE"
-         */
-        /*   jwt.verify(token, "secretToken", function (err, decoded) {
-            console.log(decoded.userId) // bar
-          }); */
-
         return true;
       }
       else {
@@ -431,10 +415,8 @@ export const resolvers = {
         { _id: ObjectId(crop_id) }
       );
       if (!result) {
-        console.log("Non è stato possibile inserire " + result);
-        throw new Error("Error- Cannot update the setting");
+        throw new Error("Crop not removed");
       }
-      console.log(crop);
 
       return true;
     },
@@ -508,8 +490,7 @@ export const resolvers = {
       ).exec();
 
       if (!updateAuth && !addSystem) {
-        return false;
-        //  throw new Error("Error- Cannot update the setting")
+        throw new Error("Could not add user");
       }
       else {
         return true;
@@ -522,8 +503,7 @@ export const resolvers = {
         { $push: { username: new_username } },
       ).exec();
       if (!updateAuth) {
-        return false;
-        //  throw new Error("Error- Cannot update the setting")
+        throw new Error("Error- Could not edit user")
       }
       else {
         return true;
@@ -570,9 +550,9 @@ export const resolvers = {
         });
         var result = await measure.save();
         if (!result) {
-          console.log("Misure non inserite!")
+          console.log("Measures not added")
         } else {
-          console.log("Misure inserite in system: ");
+          console.log("Measures added in system: ");
           console.log(measure);
         }
         return {
@@ -607,7 +587,6 @@ function ISO8601_week_no(dt) {
 function authRequest(context) {
 
   var token = (context.req.headers.authorization).replace('Bearer ', '');
-  console.log(token);
 
   try {
     var decoded = jwt.verify(token, "secretToken");

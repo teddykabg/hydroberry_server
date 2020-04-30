@@ -1,10 +1,8 @@
 import { ApolloServer } from 'apollo-server-express';
 import express from 'express';
-import { jwt } from 'jsonwebtoken';
 import { typeDefs } from '../schema/typeDefs.js';
 import { resolvers } from '../schema/resolvers.js';
 import { createServer } from 'http';
-import { User } from '../api/models/user.js';
 const startServer = async () => {
     const PORT = process.env.PORT || 4000;
     const app = express();
@@ -20,16 +18,7 @@ const startServer = async () => {
     }
     app.use(bodyParser.urlencoded({ extended: true }));
     app.use(bodyParser.json());
-    //app.use('*', jwtCheck, requireAuth, checkScope);
 
-    /*   const myPlugin = {
-          // Fires whenever a GraphQL request is received from a client.
-          requestDidStart(requestContext) {
-              console.log('Request started! Query:\n' +
-                  requestContext.request.query);
-  
-          }
-      } */
     const server = new ApolloServer({
         context: async ({ req ,res}) =>({req,res}),
         typeDefs,
