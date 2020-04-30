@@ -289,26 +289,34 @@ export const resolvers = {
 
     },
 
-    removeAuthPerson: async(_,{system_id,index},context)=>{
+    removeAuthPerson: async (_, { system_id, index }, context) => {
       var user_id = authRequest(context);
-      var array = "authorized_people"+"."+index;
       if (user_id != null) {
-        const system = await System.updateOne({ _id: system_id },
-          { $set: { array: new_value } })
-        const system2 =  await System.updateOne({ _id: system_id },
-          { $pull: { "authorized_people": null} })
-        if (!system2) {
-          console.log("No system with that ID" );
-          return false;
-        } else {
-          return true;
+       //5ea6e59bec7e514314e31ca9
+        var system2 = await System.findById(system_id);
+        if (system2) {
+          var authPeople = system2.authorized_people;
+          var newArray = [];
+          for(var i=0;i<authPeople.length;i++){
+            if(i != index)
+              newArray.push(authPeople[i]);
+            else{
+              console.log("element at "+index+" deleted");
+            }
+          }
+          const system = await System.updateOne({ _id: system_id },
+            { $set: { authorized_people: newArray } })
+          if (system) {
+            return true;
+          } else {
+            throw new Error("Error in updating array");
+          }
         }
-
-      }else{
-        
+      } else {
         throw new Error("Not Authorized");
       }
     },
+
     editFullname: async (_, { new_value }, context) => {
       var user_id = authRequest(context);
       if (user_id != null) {
@@ -555,12 +563,12 @@ export const resolvers = {
     },
 
     addAuthorizedPerson: async (_, { system_id, user_id }) => {
-      const updateAuth = await System.update(
-        { _id: ObjectId(system_id) },
+      const updateAuth = await System.updateOne(
+        { _id: system_id },
         { $push: { authorized_people: user_id } },
       ).exec();
-      const addSystem = await User.update(
-        { _id: ObjectId(user_id) },
+      const addSystem = await User.updateOne(
+        { _id: user_id },
         { $push: { systems: system_id } },
       ).exec();
 

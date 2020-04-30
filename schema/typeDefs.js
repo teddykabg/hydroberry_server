@@ -182,7 +182,7 @@ type Mutation{
 
     removeCrop (crop_name : String):Boolean!,
 
-    addAuthorizedPerson (user_id : ID!):Boolean!,
+    addAuthorizedPerson (system_id:ID!, user_id : ID!):Boolean!,
 
     editUserUsername(user_id : ID!, new_username:String!):Boolean!,
 
