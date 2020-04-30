@@ -128,6 +128,15 @@ type Query{
 },
 type Mutation{
 
+    editFullname(new_value:String!):Boolean!,
+
+    editPassword(new_value:String!):Boolean!,
+
+    editEmail(new_value:String!):Boolean!,
+
+    removeAuthPerson(system_id:ID!,
+        index:Int!):Boolean!,
+
     newSession(user_id:String!,
         access_token:String!):Boolean!,
     

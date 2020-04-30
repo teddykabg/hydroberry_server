@@ -43,16 +43,15 @@ export const resolvers = {
 
     getUsers: () => User.find(),
 
-    getSystems: () => System.find(),//5e7b2df8ba660d22b82fbf34
+    getSystems: () => System.find(),
+
     getUserSystems: async (_, args, context) => {
       var user_id = authRequest(context);
       var systems = [];
       if (user_id != null) {
         var user = await User.findById(user_id);
         if (user) {
-          console.log("The problem is after");
           for (var i = 0; i < user.systems.length; i++) {
-            console.log(user.systems[i]);
             var system = await System.findById(user.systems[i]);
             if (system) {
               systems.push(system);
@@ -116,14 +115,10 @@ export const resolvers = {
           var systemsId = user.systems
           for (var i = 0; i < systemsId.length; i++) {
             var system = await System.findById(systemsId[i]);
-            console.log(system.system_name);
-            console.log(system._id);
-            console.log(systemsId);
+
             if (system) {
               systemNames.push(system.system_name);
               systemIds.push(system._id);
-              console.log(system.system_name);
-              console.log(system._id);
             } else {
               throw new Error("System doesn't exist");
             }
@@ -293,6 +288,86 @@ export const resolvers = {
       }
 
     },
+
+    removeAuthPerson: async(_,{system_id,index},context)=>{
+      var user_id = authRequest(context);
+      var array = "authorized_people"+"."+index;
+      if (user_id != null) {
+        const system = await System.updateOne({ _id: system_id },
+          { $set: { array: new_value } })
+        const system2 =  await System.updateOne({ _id: system_id },
+          { $pull: { "authorized_people": null} })
+        if (!system2) {
+          console.log("No system with that ID" );
+          return false;
+        } else {
+          return true;
+        }
+
+      }else{
+        
+        throw new Error("Not Authorized");
+      }
+    },
+    editFullname: async (_, { new_value }, context) => {
+      var user_id = authRequest(context);
+      if (user_id != null) {
+        console.log("Changing....");
+        const updateAuth = await User.updateOne(
+          { _id: user_id },
+          { $set: { fullname: new_value } },
+        ).exec();
+        if (!updateAuth) {
+          throw new Error("Error- Could not edit user")
+        }
+        else {
+          return true;
+        }
+      } else {
+        throw new Error("Not Authorized");
+      }
+    },
+
+    editPassword: async (_, { new_value }, context) => {
+      var user_id = authRequest(context);
+      if (user_id != null) {
+        console.log("Changing....");
+
+        const updateAuth = await User.updateOne(
+          { _id: user_id },
+          { $set: { password: new_value } },
+        ).exec();
+        if (!updateAuth) {
+          throw new Error("Error- Could not edit user")
+        }
+        else {
+          return true;
+        }
+
+      } else {
+        throw new Error("Not Authorized")
+      }
+    },
+
+    editEmail: async (_, { new_value }, context) => {
+      var user_id = authRequest(context);
+      if (user_id != null) {
+        console.log("Changing....");
+        const updateAuth = await User.updateOne(
+          { _id: user_id },
+          { $set: { email: new_value } },
+        ).exec();
+        if (!updateAuth) {
+          throw new Error("Error- Could not edit user")
+        }
+        else {
+          return true;
+        }
+      } else {
+        throw new Error("Not Authorized")
+      }
+    },
+
     addCropToSystem: async (_, { crop_name, system_id }, context) => {
       var user_id = authRequest(context);
       if (user_id != null) {
