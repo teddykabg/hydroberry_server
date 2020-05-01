@@ -60,6 +60,19 @@ type Measurement{
 
 },
 
+type GraphDataHour{
+    _id:ID!,
+    hour_slot: Int!, 
+    lux: Boolean!,
+    temp_env : Float!,
+    hum_env: Float!,
+    temp_wat: Float!,
+    ph : Float!,
+    ec: Float!
+
+},
+
+
 type Logs{
 	_id : ID!,
 	system_id : ID!,
@@ -119,11 +132,11 @@ type Query{
 
     getMeasure:[Measurement!]! ,#Has to get the measure from mqtt every minute ("subscription to topic")
 
-    getDataLastHour(system_id:ID!,id_crop:ID!,parameter:String!):[Float],
+    getDataLastHour(system_id:ID!,id_crop:ID!):[GraphDataHour!],
 
-    getDataLastWeek(system_id:ID!,id_crop:ID!,parameter:String!):[Float],
+    getDataLastWeek(system_id:ID!,id_crop:ID!):[Float],
 
-    getDataLastYear(system_id:ID!,id_crop:ID!,parameter:String!):[Float],
+    getDataLastYear(system_id:ID!,id_crop:ID!):[Float],
 
 },
 type Mutation{

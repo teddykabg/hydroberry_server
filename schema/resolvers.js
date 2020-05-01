@@ -201,36 +201,45 @@ export const resolvers = {
       }
 
     },
-    getDataLastHour:async (_,{system_id,id_crop,parameter},context) =>{
+    getDataLastHour: async (_, { system_id, id_crop, parameter }, context) => {
       var user_id = authRequest(context);
       var current_date = new Date();
       if (user_id != null) {
         var data
-      }else {
+      } else {
         throw new Error("Not authorized");
       }
     },
-    getDataLastHour: async(_,{system_id, id_crop,parameter},context) => {
+    getDataLastHour: async (_, { system_id, id_crop }, context) => {
       var user_id = authRequest(context);
       if (user_id != null) {
         const current = new Date();
-        var data = await Measurement.findById(system_id).find({
+        var data = await Measurement.find({
           $and: [
+            { system_id: system_id },
             { crop_id: id_crop },
             { day_slot: current.getDay() },
             { month_slot: current.getMonth() },
             { year_slot: current.getFullYear() },
             { hour_slot: (current.getHours() - 1) },
           ]
+        }, {
+          lux: 1,
+          hour_slot: 1,
+          temp_env: 1,
+          hum_env: 1,
+          temp_wat: 1,
+          ph: 1,
+          ec: 1
         })
-        console.log(data);
+        console.log("Dataa"+data);
         return data;
 
-      }else {
+      } else {
         throw new Error("Not authorized");
       }
 
-      
+
     },
 
     getDataLastWeek: async (system_id, id_crop, parameter) => {
@@ -245,7 +254,7 @@ export const resolvers = {
       })
     },
 
-    getDataLastYear:async (_,{system_id, id_crop, parameter},context) => {
+    getDataLastYear: async (_, { system_id, id_crop, parameter }, context) => {
       const current = new Date();
 
       var data = await Measurement.findById(system_id).find({
@@ -310,16 +319,16 @@ export const resolvers = {
     removeAuthPerson: async (_, { system_id, index }, context) => {
       var user_id = authRequest(context);
       if (user_id != null) {
-       //5ea6e59bec7e514314e31ca9
+        //5ea6e59bec7e514314e31ca9
         var system2 = await System.findById(system_id);
         if (system2) {
           var authPeople = system2.authorized_people;
           var newArray = [];
-          for(var i=0;i<authPeople.length;i++){
-            if(i != index)
+          for (var i = 0; i < authPeople.length; i++) {
+            if (i != index)
               newArray.push(authPeople[i]);
-            else{
-              console.log("element at "+index+" deleted");
+            else {
+              console.log("element at " + index + " deleted");
             }
           }
           const system = await System.updateOne({ _id: system_id },
