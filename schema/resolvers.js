@@ -27,11 +27,12 @@ export const resolvers = {
       return new Date(value); // value from the client
     },
     serialize(value) {
-      console.log(new Date(value).toISOString())
+      console.log("Here is the date! : " + value)
       return new Date(value * 1000).toISOString();
     },
     parseLiteral(ast) {
       if (ast.kind === Kind.INT) {
+        console.log("Here is the date! : " + ast.value)
         return new Date(ast.value) // ast value is always in string format
       }
       return null;
@@ -630,12 +631,10 @@ export const resolvers = {
     subscribe2topic: {
       resolve: async (payload) => {
         const newTime = new Date()
-        var crypto = require("crypto");
-        var sys_crop_rand_id = crypto.randomBytes(20).toString('hex');
         const measure = new Measurement({
           system_id: "5ea6e4eb30272ea33efc1ce2",
           crop_id: "5ea6e4eb30272ea33efc1ce1",
-          time: new Date(payload.data.time * 1000),
+          time: new Date(),
           hour_slot: newTime.getHours(),
           month_slot: newTime.getMonth(),
           day_slot: newTime.getDay(),
@@ -656,7 +655,7 @@ export const resolvers = {
           console.log(measure);
         }
         return {
-          time: new Date(payload.data.time * 1000),
+          time: new Date(),
           lux: payload.data.lux,
           temp: payload.data.temp,
           hum: payload.data.hum,
